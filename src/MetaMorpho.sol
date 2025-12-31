@@ -364,6 +364,7 @@ contract MetaMorpho is ERC4626, ERC20Permit, Ownable2Step, Multicall, IMetaMorph
 
     /// @inheritdoc IMetaMorphoBase
     function reallocate(MarketAllocation[] calldata allocations) external onlyAllocatorRole {
+        // !TODO: Change this.
         uint256 totalSupplied;
         uint256 totalWithdrawn;
         for (uint256 i; i < allocations.length; ++i) {
@@ -581,6 +582,7 @@ contract MetaMorpho is ERC4626, ERC20Permit, Ownable2Step, Multicall, IMetaMorph
 
     /// @inheritdoc IERC4626
     function totalAssets() public view override returns (uint256 assets) {
+        //! TODO: Change this to make it compatible with Tokenized Strategy Vault
         for (uint256 i; i < withdrawQueue.length; ++i) {
             assets += MORPHO.expectedSupplyAssets(_marketParams(withdrawQueue[i]), address(this));
         }
@@ -616,6 +618,7 @@ contract MetaMorpho is ERC4626, ERC20Permit, Ownable2Step, Multicall, IMetaMorph
             uint256 supplyCap = config[id].cap;
             if (supplyCap == 0) continue;
 
+            //! TODO: Need to change this to get the the shares hold by `this` address.
             uint256 supplyShares = MORPHO.supplyShares(id, address(this));
             (uint256 totalSupplyAssets, uint256 totalSupplyShares,,) = MORPHO.expectedMarketBalances(_marketParams(id));
             // `supplyAssets` needs to be rounded up for `totalSuppliable` to be rounded down.
@@ -668,6 +671,7 @@ contract MetaMorpho is ERC4626, ERC20Permit, Ownable2Step, Multicall, IMetaMorph
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
         super._deposit(caller, receiver, assets, shares);
 
+        //! TODO : Need to change this.
         _supplyMorpho(assets);
 
         // `lastTotalAssets + assets` may be a little off from `totalAssets()`.
@@ -684,6 +688,7 @@ contract MetaMorpho is ERC4626, ERC20Permit, Ownable2Step, Multicall, IMetaMorph
         internal
         override
     {
+        //! TODO: need to change this
         _withdrawMorpho(assets);
 
         super._withdraw(caller, receiver, owner, assets, shares);
@@ -703,6 +708,7 @@ contract MetaMorpho is ERC4626, ERC20Permit, Ownable2Step, Multicall, IMetaMorph
         internal
         returns (uint256 assets, uint256 shares, Market memory market)
     {
+        //! TODO: Need to change this.
         MORPHO.accrueInterest(marketParams);
 
         market = MORPHO.market(id);
@@ -828,6 +834,7 @@ contract MetaMorpho is ERC4626, ERC20Permit, Ownable2Step, Multicall, IMetaMorph
             Id id = withdrawQueue[i];
             MarketParams memory marketParams = _marketParams(id);
 
+            //! TODO: change this for standard TSV (Tokenized Strategy Vault)
             uint256 supplyShares = MORPHO.supplyShares(id, address(this));
             (uint256 totalSupplyAssets, uint256 totalSupplyShares, uint256 totalBorrowAssets,) =
                 MORPHO.expectedMarketBalances(marketParams);
@@ -859,6 +866,7 @@ contract MetaMorpho is ERC4626, ERC20Permit, Ownable2Step, Multicall, IMetaMorph
         uint256 totalBorrowAssets,
         uint256 supplyAssets
     ) internal view returns (uint256) {
+        //! TODO: Need to change this to a standard function to get teh max withdrawable amount from the yeild source.
         // Inside a flashloan callback, liquidity on Morpho Blue may be limited to the singleton's balance.
         uint256 availableLiquidity = UtilsLib.min(
             totalSupplyAssets - totalBorrowAssets, ERC20(marketParams.loanToken).balanceOf(address(MORPHO))
